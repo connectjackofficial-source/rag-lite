@@ -13,9 +13,10 @@ from .keywords import keyword_extract
 from .bm25 import BM25
 from .expand import expand_query
 from .serve import serve
+from .fusion import reciprocal_rank_fusion, fuse_search_results
 
 __version__ = "0.3.0"
 __all__ = ["tokenize", "TFIDF", "build_index", "cosine_similarity",
            "cosine_search", "chunk_document", "SearchIndex", "save_index",
            "load_index", "keyword_extract", "BM25", "expand_query",
-           "serve"]
+           "serve", "reciprocal_rank_fusion", "fuse_search_results"]
