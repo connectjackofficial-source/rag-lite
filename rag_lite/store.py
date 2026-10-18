@@ -24,11 +24,13 @@ class SearchIndex:
 
     def add_document(self, text: str) -> None:
         self.docs.append(text)
-        self._rebuild()
+        self._tfidf.extend([text])
 
     def add_documents(self, texts) -> None:
+        if not texts:
+            return
         self.docs.extend(texts)
-        self._rebuild()
+        self._tfidf.extend(texts)
 
     def _rebuild(self) -> None:
         self._tfidf = TFIDF(self.docs, self.ngram, self.stopwords)

@@ -23,12 +23,15 @@ class TFIDF:
 
     def __init__(self, docs, ngram: int = 2,
                  stopwords=STOPWORDS):
-        tokenized = [tokenize(d, ngram, stopwords) for d in docs]
+        self.ngram = ngram
+        self.stopwords = frozenset(stopwords)
+        tokenized = [tokenize(d, ngram, self.stopwords) for d in docs]
         n = len(docs)
         df = {}
         for toks in tokenized:
             for t in set(toks):
                 df[t] = df.get(t, 0) + 1
+        self._df = df
         self.idf = {t: 1.0 + math.log(n / (1.0 + d)) for t, d in df.items()}
         self.vectors = [self._vector(toks) for toks in tokenized]
 
@@ -45,6 +48,26 @@ class TFIDF:
     def query_vector(self, text: str, ngram: int = 2,
                      stopwords=STOPWORDS) -> dict:
         return self._vector(tokenize(text, ngram, stopwords))
+
+    def extend(self, docs) -> None:
+        """Incrementally add documents without re-tokenizing old ones.
+
+        Document frequencies accumulate so idf reflects the new corpus
+        size; existing vectors keep their previously computed weights
+        (a documented approximation that keeps append O(new) rather
+        than O(all)).
+        """
+        if not docs:
+            return
+        new_toks = [tokenize(d, self.ngram, self.stopwords) for d in docs]
+        n = len(self.vectors) + len(new_toks)
+        df = dict(self._df)
+        for toks in new_toks:
+            for t in set(toks):
+                df[t] = df.get(t, 0) + 1
+        self._df = df
+        self.idf = {t: 1.0 + math.log(n / (1.0 + d)) for t, d in df.items()}
+        self.vectors.extend(self._vector(toks) for toks in new_toks)
 
 
 def build_index(docs, ngram: int = 2, stopwords=STOPWORDS) -> dict:
